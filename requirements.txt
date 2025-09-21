@@ -1,3 +1,4 @@
+Adafruit_Blinka
 adafruit-circuitpython-bmp3xx
 adafruit-circuitpython-sht31d
 pandas
