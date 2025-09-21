@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def update_datalog(sensor_data:dict):
     """
@@ -110,7 +110,7 @@ def remove_oldest_line(file_path:str):
     else:
         return "file does not exist"
 
-def cleanup_old_data(days_to_keep: int = 90):
+def cleanup_old_data(days_to_keep: int = 3650):
     try:
         wkdirectory = os.getcwd()
         files = [os.path.join(wkdirectory, file) for file in ["weather_data.csv", "error_log.csv"]]
@@ -166,5 +166,134 @@ def cleanup_old_data(days_to_keep: int = 90):
         log_error(error_msg)
         return error_msg
 
+def read_data_range(start_date=None, end_date=None, last_n_days=None):
+    """
+    Read weather data with optional filtering
+    
+    Args:
+        start_date: datetime object or string "YYYY-MM-DD HH:MM:SS"
+        end_date: datetime object or string "YYYY-MM-DD HH:MM:SS" 
+        last_n_days: int, get last N days of data
+        
+    Returns:
+        list of dictionaries with weather data, or error message string
+    """
+    try:
+        wkdirectory = os.getcwd()
+        data_path = os.path.join(wkdirectory, "weather_data.csv")
+        
+        if not os.path.isfile(data_path):
+            return "No weather data file found"
+        
+        # Calculate date range if using last_n_days
+        if last_n_days:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=last_n_days)
+        
+        # Convert string dates to datetime objects if needed
+        if isinstance(start_date, str):
+            start_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+        
+        # Read and filter data
+        filtered_data = []
+        with open(data_path, 'r') as f:
+            lines = f.readlines()
+            
+        # Skip header, process data lines
+        for line in lines[1:]:
+            try:
+                parts = line.strip().split(',')
+                timestamp_str = parts[0]
+                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                
+                # Apply date filtering
+                if start_date and timestamp < start_date:
+                    continue
+                if end_date and timestamp > end_date:
+                    continue
+                
+                # Create data dictionary
+                data_dict = {
+                    'timestamp': timestamp_str,
+                    'exterior_temp': parts[1],
+                    'interior_temp': parts[2],
+                    'humidity': parts[3],
+                    'pressure': parts[4]
+                }
+                filtered_data.append(data_dict)
+                
+            except (ValueError, IndexError):
+                # Skip malformed lines
+                continue
+        
+        return filtered_data
+        
+    except Exception as e:
+        return f"Error reading data: {str(e)}"
 
+def read_error_logs(start_date=None, end_date=None, last_n_days=None):
+    """
+    Read error log data with optional filtering
+    
+    Args:
+        start_date: datetime object or string "YYYY-MM-DD HH:MM:SS"
+        end_date: datetime object or string "YYYY-MM-DD HH:MM:SS" 
+        last_n_days: int, get last N days of errors
+        
+    Returns:
+        list of dictionaries with error data, or error message string
+    """
+    try:
+        wkdirectory = os.getcwd()
+        error_path = os.path.join(wkdirectory, "error_log.csv")
+        
+        if not os.path.isfile(error_path):
+            return "No error log file found"
+        
+        # Calculate date range if using last_n_days
+        if last_n_days:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=last_n_days)
+        
+        # Convert string dates to datetime objects if needed
+        if isinstance(start_date, str):
+            start_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+        
+        # Read and filter error data
+        filtered_errors = []
+        with open(error_path, 'r') as f:
+            lines = f.readlines()
+            
+        # Skip header, process error lines
+        for line in lines[1:]:
+            try:
+                # Split on first comma only (error messages might contain commas)
+                timestamp_str, error_message = line.strip().split(',', 1)
+                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                
+                # Apply date filtering
+                if start_date and timestamp < start_date:
+                    continue
+                if end_date and timestamp > end_date:
+                    continue
+                
+                # Create error dictionary
+                error_dict = {
+                    'timestamp': timestamp_str,
+                    'error_message': error_message
+                }
+                filtered_errors.append(error_dict)
+                
+            except (ValueError, IndexError):
+                # Skip malformed lines
+                continue
+        
+        return filtered_errors
+        
+    except Exception as e:
+        return f"Error reading error logs: {str(e)}"
     
