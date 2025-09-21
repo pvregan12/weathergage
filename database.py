@@ -1,6 +1,5 @@
-
-import pandas as pd
 import os
+from datetime import datetime
 
 def update_datalog(sensor_data:dict):
     """
@@ -26,7 +25,10 @@ def update_datalog(sensor_data:dict):
                 f.write(f"{new_line}\n")
             return "new file created with data"
     except KeyError as e:
-        return f"Error: missing required sensor data key: {str(e)}"
+        error_msg = f"Missing sensor data key: {str(e)}"
+        log_error(error_msg)
+        return f"Error: {error_msg}"
+        
     except OSError as e:
         if "No space left" in str(e) or "Disk full" in str(e):
             free_result = free_disk_space()
@@ -61,10 +63,37 @@ def free_disk_space():
             break
     error_result = remove_oldest_line("error_log.csv")
 
+    log_error(f"Disk cleanup performed: removed {removed_count} records")
     return f"freed space: removed {removed_count} weather records"
 
 def log_error(error_message:str):
-    pass
+    """
+    writes error messages to a file in the same directory.
+    if the write fails, doesn't take any action, fails silently
+    """
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # get directory name and file name
+        wkdirectory = os.getcwd()
+        error_path = os.path.join(wkdirectory, "error_log.csv")
+
+        if os.path.isfile(error_path):
+            # csv file already exists in this location. just append to end of file
+            with open(error_path, 'a') as f:
+                f.write(f"{timestamp},{error_message}\n")
+            return "error message appended to existing file"
+        else:
+            # csv file does not exist in this location, create one and add headers and data
+            with open(error_path, 'w') as f:
+                f.write(f"timestamp,error_message\n")
+                f.write(f"{timestamp},{error_message}\n")
+            return "new file created with erro message"
+
+    except OSError as e:
+        return f"Failed to log error: {str(e)}"
+    except Exception as e:
+        return f"Failed to log error: {str(e)}"
 
 def remove_oldest_line(file_path:str):
     if os.path.isfile(file_path):
@@ -80,7 +109,62 @@ def remove_oldest_line(file_path:str):
             return "no data lines to remove"
     else:
         return "file does not exist"
+
+def cleanup_old_data(days_to_keep: int = 90):
+    try:
+        wkdirectory = os.getcwd()
+        files = [os.path.join(wkdirectory, file) for file in ["weather_data.csv", "error_log.csv"]]
+        current_timestamp = datetime.now()
         
+        total_removed = 0
+        
+        for file in files:
+            if not os.path.isfile(file):
+                continue  # Skip if file doesn't exist
+            
+            try:
+                with open(file, 'r') as f:
+                    file_lines = f.readlines()
+                
+                if len(file_lines) <= 1:  # Only header or empty
+                    continue
+                
+                lines_to_remove = 0
+                for i in range(1, len(file_lines)):  # Skip header
+                    line = file_lines[i]
+                    try:
+                        timestamp_str = line.split(",")[0]
+                        timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                        time_difference = current_timestamp - timestamp
+                        
+                        if time_difference.days >= days_to_keep:  # Line is old
+                            lines_to_remove += 1
+                        else:  # Found first recent line
+                            break
+                            
+                    except (ValueError, IndexError) as e:
+                        # Malformed timestamp or line, skip this line
+                        log_error(f"Malformed line in {file}: {line.strip()}")
+                        continue
+                
+                # Remove the old lines
+                for j in range(lines_to_remove):
+                    result = remove_oldest_line(file)
+                
+                if lines_to_remove > 0:
+                    total_removed += lines_to_remove
+                    log_error(f"Cleanup: removed {lines_to_remove} old records from {os.path.basename(file)}")
+                    
+            except (PermissionError, OSError) as e:
+                log_error(f"Cleanup failed for {file}: {str(e)}")
+                continue
+        
+        return f"cleanup complete: removed {total_removed} total records"
+        
+    except Exception as e:
+        error_msg = f"Cleanup function failed: {str(e)}"
+        log_error(error_msg)
+        return error_msg
 
 
     
