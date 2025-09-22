@@ -60,9 +60,9 @@ def initialize_sensors():
             print(f"Hardware sensor intialization failed: {e}")
             print("Falling back to mock sensors")
             return initialize_mock_sensors()
-        else:
-            print("Failling back to mock sensors")
-            return initialize_mock_sensors
+    else:
+        print("Failling back to mock sensors")
+        return initialize_mock_sensors()
         
 def initialize_mock_sensors():
     """Initialize mock sensors for testing"""

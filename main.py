@@ -17,7 +17,7 @@ def main_loop():
     # initialize hardware
     try:
         sensors = initialize_sensors()
-        button = gpiozero.Button(BUTTON_PIN)
+        #button = gpiozero.Button(BUTTON_PIN)
         last_cleanup = datetime.now()
 
         log_error("Weather station started")

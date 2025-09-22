@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 def update_datalog(sensor_data:dict):
     """
     function that takes in a dict of sensor data and writes it to a file named 'weather_data.csv' in the working directory.
-    assumes timestamp name
-    """
+    assumes keys are timestamp, exterioro_temp, interior_temp, humidity, pressure
+    """ 
     try:
         # get directory name and file name
         wkdirectory = os.getcwd()
