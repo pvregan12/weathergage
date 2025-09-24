@@ -28,6 +28,7 @@ COPYPARTY_SERVER = "192.168.12.209"    # Your server IP
 COPYPARTY_PORT = 3923
 COPYPARTY_USERNAME = "weathergage"
 COPYPARTY_PASSWORD = "climate_change"   # You'll set this
+UPDATE_FLAG = "weather//update_flag.txt"
 UPLOAD_INTERVAL_HOURS = 24
 
 # WiFi Hotspot Settings (if you implement it later)

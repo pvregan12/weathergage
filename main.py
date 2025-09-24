@@ -5,10 +5,10 @@ import sys
 import gpiozero
 from datetime import datetime, timedelta
 
-from sensors import initialize_sensors, read_sensors_over_interval
-from database import update_datalog, log_error
+from sensors import *
+from database import *
 #from display import initialize_display, update_display
-from web_server import should_upload, upload_to_server
+from web_server import *
 
 from config import *
 
@@ -94,6 +94,9 @@ def take_readings():
                 print("Upload needed - connecting to network...")
                 upload_result = upload_to_server()
                 print(f"Upload result: {upload_result}")
+                # see if update needed
+                print("Checking for update flag")
+                update_result = should_update()
             else:
                 print("No upload needed")
                 

@@ -4,8 +4,7 @@ import time
 import requests
 import json
 from datetime import datetime, timedelta
-from config import COPYPARTY_SERVER, COPYPARTY_PORT, COPYPARTY_USERNAME, COPYPARTY_PASSWORD
-from config import UPLOAD_INTERVAL_HOURS, LAST_UPLOAD_FILE, GIT_REPO_URL
+from config import *
 #from flask import Flask, jsonify, request, make_response
 from database import log_error, read_data_range, read_error_logs
 
@@ -54,32 +53,29 @@ def prepare_upload_data():
     }
 
 def upload_to_server():
-    """Upload all new data to server and check for git pull flag"""
-    # first, check for update
-    gitpull = should_update()
-
-    # then, upload data
+    """Upload all weather station data as one bundled file"""
     try:
-        upload__data = prepare_upload_data()
+        upload_data = prepare_upload_data()  # Use your existing function
         current_time = datetime.now()
-
-        filename = f"weather_upload_{current_time.strftime("%Y-%m-%d %H:%M:%S")}.json"
-
-        # upload
-        url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/weatherdata/upload"
-        files = {
-            'file': (filename, json.dumps(upload__data), 'application/json')
-        }
-        response = requests.post(url, files=files, timeout=30)
-
-        if response.status_code == 200:
-            # save successful upload time
+        
+        filename = f"weather_bundle_{current_time.strftime('%Y%m%d_%H%M%S')}.json"
+        url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/weather//{filename}"
+        
+        response = requests.put(
+            url,
+            data=json.dumps(upload_data, indent=2),
+            headers={'Content-Type': 'application/json'},
+            timeout=30
+        )
+        
+        if response.status_code in [200, 201]:
             save_last_upload_time(current_time)
-            return f"Upload successful: {upload__data['status']['data_points_uploaded']} weather records"
+            return f"Bundle upload successful: {len(upload_data.get('weather_data', []))} weather records"
         else:
-            return f"Upload failed: HTTP {response.status_code}"
+            return f"Bundle upload failed: HTTP {response.status_code}"
+            
     except Exception as e:
-        error_msg = f"Upload failed: {str(e)}"
+        error_msg = f"Bundle upload failed: {str(e)}"
         log_error(error_msg)
         return error_msg
 
@@ -91,7 +87,7 @@ def should_upload():
 
 def should_update():
     """Check if a flag file exists on copyparty, and if so, git pull."""
-    url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/{FLAG_FILE_PATH}"
+    url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/{UPDATE_FLAG}"
     
     try:
         response = requests.head(url, timeout=5)
@@ -104,25 +100,27 @@ def should_update():
                 ["git", "pull"],
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
+                timeout=30
             )
+            log_error(f"Git pull completed: {result.stdout.strip()}")
             print("Git pull successful.")
             print(f"Output:\n{result.stdout}")
-            return True
+            return f"Output:\n{result.stdout}" #True
         else:
             print("No update flag found. No action needed.")
-            return False
+            return "No update flag found. No action needed." # False
             
     except subprocess.CalledProcessError as e:
         print(f"Error during git pull: {e}")
         print(f"Error output:\n{e.stderr}")
-        return False
+        return f"Error output:\n{e.stderr}" # False
     except requests.exceptions.RequestException as e:
-        print(f"Error checking for update flag: {e}")
-        return False
+        print(f"Error checking for update flag: {e}") 
+        return f"Error checking for update flag: {e}" # False
     except Exception as e:
-        print(f"An unexpected error occurred: {str(e)}")
-        return False
+        print(f"An unexpected error occurred: {str(e)}") 
+        return f"An unexpected error occurred: {str(e)}" # False
 
 # utils
 def get_system_uptime():
@@ -164,11 +162,12 @@ def get_last_error(window=7):
 
 ###  fragments for local hotspot download
 # hotspot config
+"""
 HOTSPOT_SSID = "WeatherStation_102"
 HOTSPOT_PASSWORD = "testweather102"
 HOTSPOT_IP = "192.168.4.1"
 def start_wifi_hotspot():
-    """Start WiFi hotspot using system commands"""
+    " start local wifi
     try:
         # configure hostapd and dnsmasq (placehold until have pi zero)
         # subprocess.run(['sudo', 'systemctl', 'start', 'hostapd'], check=True)
@@ -181,10 +180,10 @@ def start_wifi_hotspot():
     pass
 
 def stop_wifi_hotspot():
-    """Stop WiFi hotspot"""
     try:
         # subprocess.run(['sudo', 'systemctl', 'stop', 'hostapd'], check=True)
         # subprocess.run(['sudo', 'systemctl', 'stop', 'dnsmasq'], check=True)
         return True
     except subprocess.CalledProcessError:
         return False
+"""
