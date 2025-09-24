@@ -2,8 +2,9 @@ import time
 import signal
 import sys
 from datetime import datetime, timedelta
-from sensors import read_all_sensors, initialize_sensors
+from sensors import read_sensors_over_interval, initialize_sensors
 from database import update_datalog, log_error, cleanup_old_data
+from display import initialize_display, update_display
 from web_server import should_upload, upload_to_server
 import gpiozero
 
@@ -25,7 +26,7 @@ def main_loop():
         while True:
             try:
                 # take sensor readings
-                sensor_data = read_all_sensors(sensors)
+                sensor_data = read_sensors_over_interval(sensors)
 
                 if sensor_data:
                     # log to csv
@@ -41,6 +42,9 @@ def main_loop():
                     upload_result = upload_to_server()
                     print(f"Upload result: {upload_result}")
 
+
+                display = initialize_display()
+                update_display(display, sensor_data)
                 # periodic cleanup (10 years)
                 #if (datetime.now() - last_cleanup).total_seconds() > CLEANUP_INTERVAL:
                 #    cleanup_result = cleanup_old_data()

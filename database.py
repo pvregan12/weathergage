@@ -4,14 +4,14 @@ from datetime import datetime, timedelta
 def update_datalog(sensor_data:dict):
     """
     function that takes in a dict of sensor data and writes it to a file named 'weather_data.csv' in the working directory.
-    assumes keys are timestamp, exterioro_temp, interior_temp, humidity, pressure
+    assumes keys are timestamp, exterioro_temp, enclosure_temp, humidity, pressure
     """ 
     try:
         # get directory name and file name
         wkdirectory = os.getcwd()
         data_path = os.path.join(wkdirectory, "weather_data.csv")
 
-        keys = ['timestamp', 'exterior_temp', 'interior_temp', 'humidity', 'pressure']
+        keys = ['timestamp', 'exterior_temp', 'enclosure_temp', 'humidity', 'pressure']
         new_line = ",".join(str(sensor_data[key]) for key in keys)
         if os.path.isfile(data_path):
             # csv file already exists in this location. just append to end of file
@@ -21,7 +21,7 @@ def update_datalog(sensor_data:dict):
         else:
             # csv file does not exist in this location, create one and add headers and data
             with open(data_path, 'w') as f:
-                f.write(f"timestamp,exterior_temp,interior_temp,humidity,pressure\n")
+                f.write(f"timestamp,exterior_temp,enclosure_temp,humidity,pressure\n")
                 f.write(f"{new_line}\n")
             return "new file created with data"
     except KeyError as e:
@@ -37,7 +37,7 @@ def update_datalog(sensor_data:dict):
                 wkdirectory = os.getcwd()
                 data_path = os.path.join(wkdirectory, "weather_data.csv")
 
-                keys = ['timestamp', 'exterior_temp', 'interior_temp', 'humidity', 'pressure']
+                keys = ['timestamp', 'exterior_temp', 'enclosure_temp', 'humidity', 'pressure']
                 new_line = ",".join(str(sensor_data[key]) for key in keys)
                 with open(data_path, 'a') as f:
                     f.write(f"{new_line}\n")
@@ -218,7 +218,7 @@ def read_data_range(start_date=None, end_date=None, last_n_days=None):
                 data_dict = {
                     'timestamp': timestamp_str,
                     'exterior_temp': parts[1],
-                    'interior_temp': parts[2],
+                    'enclosure_temp': parts[2],
                     'humidity': parts[3],
                     'pressure': parts[4]
                 }
