@@ -24,7 +24,7 @@ LAST_UPLOAD_FILE = "last_upload.txt"
 LAST_CLEANUP_FILE = "last_cleanup.txt"
 
 # Upload Settings
-COPYPARTY_SERVER = "192.168.1.100"    # Your server IP
+COPYPARTY_SERVER = "192.168.12.209"    # Your server IP
 COPYPARTY_PORT = 3923
 COPYPARTY_USERNAME = "weathergage"
 COPYPARTY_PASSWORD = "climate_change"   # You'll set this

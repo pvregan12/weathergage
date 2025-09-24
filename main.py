@@ -22,6 +22,7 @@ def signal_early_shutdown():
     """Signal Witty Pi for early shutdown (production only)"""
     if not DEVELOPMENT_MODE:
         try:
+            import RPi.GPIO as GPIO
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(SHUTDOWN_SIGNAL_PIN, GPIO.OUT)
             GPIO.output(SHUTDOWN_SIGNAL_PIN, GPIO.HIGH)  # Start high
