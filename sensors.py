@@ -1,5 +1,6 @@
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
+from config import AVERAGING_PERIOD, READING_INTERVAL, INVALID_READING
 try:
     import adafruit_bmp3xx as bmp3xx
     import adafruit_sht31d as sht31d
@@ -38,9 +39,9 @@ class MockSensor:
         return self.base_pressure + random.uniform(-10, 10)
 
 def safe_average(values):
-    """Calculate average excluding -9999 values, return -9999 if no valid data"""
-    valid_values = [val for val in values if val != -9999]
-    return sum(valid_values) / len(valid_values) if valid_values else -9999
+    """Calculate average excluding INVALID_READING values, return INVALID_READING if no valid data"""
+    valid_values = [val for val in values if val != INVALID_READING]
+    return sum(valid_values) / len(valid_values) if valid_values else INVALID_READING
 
 def initialize_sensors():
     """Initialize SHT30 and BMP388 sensors"""
@@ -100,15 +101,15 @@ def read_all_sensors(sensors):
             enclosure_temp = None
             pressure = None
         
-        # Replace None values with -9999
+        # Replace None values with INVALID_READING
         if exterior_temp is None:
-            exterior_temp = -9999.0
+            exterior_temp = INVALID_READING
         if enclosure_temp is None:
-            enclosure_temp = -9999.0
+            enclosure_temp = INVALID_READING
         if humidity is None:
-            humidity = -9999.0
+            humidity = INVALID_READING
         if pressure is None:
-            pressure = -9999.0
+            pressure = INVALID_READING
         
         sensor_data = {
             'timestamp': timestamp,
@@ -122,7 +123,7 @@ def read_all_sensors(sensors):
         print(f"Sensor reading failed: {e}")
         return None
     
-def read_sensors_over_interval(sensors, period=30, interval=1):
+def read_sensors_over_interval(sensors, period=AVERAGING_PERIOD, interval=READING_INTERVAL):
     """
     Reads all sensors in sensors for `period` seconds, taking readings a `interval` second intervals
     """
@@ -149,10 +150,10 @@ def read_sensors_over_interval(sensors, period=30, interval=1):
         
         time.sleep(interval)
     
-    ext_temps = [val for val in ext_temps if val != -9999]
-    encl_temps = [val for val in encl_temps if val != -9999]
-    hums = [val for val in hums if val != -9999]
-    presses = [val for val in presses if val != -9999]
+    ext_temps = [val for val in ext_temps if val != INVALID_READING]
+    encl_temps = [val for val in encl_temps if val != INVALID_READING]
+    hums = [val for val in hums if val != INVALID_READING]
+    presses = [val for val in presses if val != INVALID_READING]
     
     avg_data = {
     'timestamp': timestamp,

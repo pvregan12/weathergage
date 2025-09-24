@@ -4,18 +4,20 @@ import time
 import requests
 import json
 from datetime import datetime, timedelta
+from config import COPYPARTY_SERVER, COPYPARTY_PORT, COPYPARTY_USERNAME, COPYPARTY_PASSWORD
+from config import UPLOAD_INTERVAL_HOURS, LAST_UPLOAD_FILE
 #from flask import Flask, jsonify, request, make_response
 from database import log_error, read_data_range, read_error_logs
 
 # upload config
-COPYPARTY_SERVER = "192.168.1.100" # replace with copyparty ip
-COPYPARTY_PORT = 3923 # replace with copyparty port
-UPLOAD_INTERVAL_HOURS = 24 # daily
+#COPYPARTY_SERVER = "192.168.1.100" # replace with copyparty ip
+#COPYPARTY_PORT = 3923 # replace with copyparty port
+#UPLOAD_INTERVAL_HOURS = 24 # daily
 
 def get_last_upload_time():
     """Read last upload timestamp from file"""
     try:
-        with open('last_upload.txt', 'r') as f:
+        with open(LAST_UPLOAD_FILE, 'r') as f:
             timestamp_str = f.read().strip()
             return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
     except (FileNotFoundError, ValueError):
@@ -24,7 +26,7 @@ def get_last_upload_time():
 
 def save_last_upload_time(timestamp):
     """Save successfull upload timestamp"""
-    with open('last_upload.txt', 'w') as f:
+    with open(LAST_UPLOAD_FILE, 'w') as f:
         f.write(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
 
 def prepare_upload_data():

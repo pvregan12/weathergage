@@ -1,15 +1,17 @@
 import os
 from datetime import datetime, timedelta
+# database.py  
+from config import WEATHER_DATA_FILE, ERROR_LOG_FILE
 
 def update_datalog(sensor_data:dict):
     """
-    function that takes in a dict of sensor data and writes it to a file named 'weather_data.csv' in the working directory.
+    function that takes in a dict of sensor data and writes it to a file named 'WEATHER_DATA_FILE' in the working directory.
     assumes keys are timestamp, exterioro_temp, enclosure_temp, humidity, pressure
     """ 
     try:
         # get directory name and file name
         wkdirectory = os.getcwd()
-        data_path = os.path.join(wkdirectory, "weather_data.csv")
+        data_path = os.path.join(wkdirectory, WEATHER_DATA_FILE)
 
         keys = ['timestamp', 'exterior_temp', 'enclosure_temp', 'humidity', 'pressure']
         new_line = ",".join(str(sensor_data[key]) for key in keys)
@@ -35,7 +37,7 @@ def update_datalog(sensor_data:dict):
             try:
                 # get directory name and file name
                 wkdirectory = os.getcwd()
-                data_path = os.path.join(wkdirectory, "weather_data.csv")
+                data_path = os.path.join(wkdirectory, WEATHER_DATA_FILE)
 
                 keys = ['timestamp', 'exterior_temp', 'enclosure_temp', 'humidity', 'pressure']
                 new_line = ",".join(str(sensor_data[key]) for key in keys)
@@ -56,12 +58,12 @@ def free_disk_space():
     """
     removed_count = 0
     for i in range(5):
-        result = remove_oldest_line("weather_data.csv")
+        result = remove_oldest_line(WEATHER_DATA_FILE)
         if "successfully" in result:
             removed_count += 1
         elif "no data lines" in result:
             break
-    error_result = remove_oldest_line("error_log.csv")
+    error_result = remove_oldest_line(ERROR_LOG_FILE)
 
     log_error(f"Disk cleanup performed: removed {removed_count} records")
     return f"freed space: removed {removed_count} weather records"
@@ -76,7 +78,7 @@ def log_error(error_message:str):
 
         # get directory name and file name
         wkdirectory = os.getcwd()
-        error_path = os.path.join(wkdirectory, "error_log.csv")
+        error_path = os.path.join(wkdirectory, ERROR_LOG_FILE)
 
         if os.path.isfile(error_path):
             # csv file already exists in this location. just append to end of file
@@ -110,10 +112,10 @@ def remove_oldest_line(file_path:str):
     else:
         return "file does not exist"
 
-def cleanup_old_data(days_to_keep: int = 3650):
+def cleanup_old_data(days_to_keep:int=3650):
     try:
         wkdirectory = os.getcwd()
-        files = [os.path.join(wkdirectory, file) for file in ["weather_data.csv", "error_log.csv"]]
+        files = [os.path.join(wkdirectory, file) for file in [WEATHER_DATA_FILE, ERROR_LOG_FILE]]
         current_timestamp = datetime.now()
         
         total_removed = 0
@@ -180,7 +182,7 @@ def read_data_range(start_date=None, end_date=None, last_n_days=None):
     """
     try:
         wkdirectory = os.getcwd()
-        data_path = os.path.join(wkdirectory, "weather_data.csv")
+        data_path = os.path.join(wkdirectory, WEATHER_DATA_FILE)
         
         if not os.path.isfile(data_path):
             return "No weather data file found"
@@ -247,7 +249,7 @@ def read_error_logs(start_date=None, end_date=None, last_n_days=None):
     """
     try:
         wkdirectory = os.getcwd()
-        error_path = os.path.join(wkdirectory, "error_log.csv")
+        error_path = os.path.join(wkdirectory, ERROR_LOG_FILE)
         
         if not os.path.isfile(error_path):
             return "No error log file found"

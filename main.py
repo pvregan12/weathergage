@@ -2,16 +2,13 @@ import time
 import signal
 import sys
 from datetime import datetime, timedelta
+from config import MAIN_LOOP_INTERVAL, BUTTON_PIN, CLEANUP_INTERVAL_DAYS
 from sensors import read_sensors_over_interval, initialize_sensors
 from database import update_datalog, log_error, cleanup_old_data
 from display import initialize_display, update_display
 from web_server import should_upload, upload_to_server
 import gpiozero
 
-# config
-READING_INTERVAL = 15 * 60 # every 15 minutes
-CLEANUP_INTERVAL = 10*365*60*60 # 10 years in seconds
-BUTTON_PIN = 18 # GPIO pin for WiFi button
 
 def main_loop():
     """Main weather station loop"""
@@ -46,7 +43,7 @@ def main_loop():
                 display = initialize_display()
                 update_display(display, sensor_data)
                 # periodic cleanup (10 years)
-                #if (datetime.now() - last_cleanup).total_seconds() > CLEANUP_INTERVAL:
+                #if (datetime.now() - last_cleanup).total_seconds() > CLEANUP_INTERVAL_DAYS*24*3600:
                 #    cleanup_result = cleanup_old_data()
                 #    print(f"Cleanup: {cleanup_result}")
                 #    last_cleanup = datetime.now()
@@ -56,8 +53,8 @@ def main_loop():
                 #    handle_wifi_button()
                 
                 # sleep until next reading
-                print(f"Sleeping for {READING_INTERVAL/60} minutes...")
-                time.sleep(READING_INTERVAL)
+                print(f"Sleeping for {MAIN_LOOP_INTERVAL/60} minutes...")
+                time.sleep(MAIN_LOOP_INTERVAL)
 
             except KeyboardInterrupt:
                 print("Shutting down weather station...")
