@@ -9,6 +9,16 @@ from display import initialize_display, update_display
 from web_server import should_upload, upload_to_server
 import gpiozero
 
+def main():
+    sensors = initialize_sensors()
+    sensor_data = read_sensors_over_interval(sensors)
+    result = update_datalog(sensor_data)
+
+    display = initialize_display
+    update_display(display, sensor_data)
+
+    if should_upload():
+        upload_result = upload_to_server()
 
 def main_loop():
     """Main weather station loop"""
@@ -143,8 +153,4 @@ def signal_tpl5110_done():
     GPIO.output(DONE_PIN, GPIO.LOW)
 """
 if __name__ == "__main__":
-    # set up handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-
-    main_loop()
+    main()
