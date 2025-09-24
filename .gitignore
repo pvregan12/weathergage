@@ -1,3 +1,10 @@
+# specific data files
+error_log.csv
+weather_data.csv
+last_upload.txt
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

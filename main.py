@@ -10,13 +10,7 @@ from database import update_datalog, log_error
 #from display import initialize_display, update_display
 from web_server import should_upload, upload_to_server
 
-from config import (
-    DEVELOPMENT_MODE,
-    SHUTDOWN_SIGNAL_PIN,
-    MAIN_LOOP_INTERVAL,
-    AVERAGING_PERIOD,
-    READING_INTERVAL
-)
+from config import *
 
 def signal_early_shutdown():
     """Signal Witty Pi for early shutdown (production only)"""

@@ -5,7 +5,7 @@ import requests
 import json
 from datetime import datetime, timedelta
 from config import COPYPARTY_SERVER, COPYPARTY_PORT, COPYPARTY_USERNAME, COPYPARTY_PASSWORD
-from config import UPLOAD_INTERVAL_HOURS, LAST_UPLOAD_FILE
+from config import UPLOAD_INTERVAL_HOURS, LAST_UPLOAD_FILE, GIT_REPO_URL
 #from flask import Flask, jsonify, request, make_response
 from database import log_error, read_data_range, read_error_logs
 
@@ -54,7 +54,11 @@ def prepare_upload_data():
     }
 
 def upload_to_server():
-    """Upload all new data to server"""
+    """Upload all new data to server and check for git pull flag"""
+    # first, check for update
+    gitpull = should_update()
+
+    # then, upload data
     try:
         upload__data = prepare_upload_data()
         current_time = datetime.now()
@@ -62,7 +66,7 @@ def upload_to_server():
         filename = f"weather_upload_{current_time.strftime("%Y-%m-%d %H:%M:%S")}.json"
 
         # upload
-        url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/upload"
+        url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/weatherdata/upload"
         files = {
             'file': (filename, json.dumps(upload__data), 'application/json')
         }
@@ -84,6 +88,41 @@ def should_upload():
     last_upload = get_last_upload_time()
     time_since_upload = datetime.now() - last_upload
     return time_since_upload.total_seconds() >= (UPLOAD_INTERVAL_HOURS * 3600)
+
+def should_update():
+    """Check if a flag file exists on copyparty, and if so, git pull."""
+    url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/{FLAG_FILE_PATH}"
+    
+    try:
+        response = requests.head(url, timeout=5)
+        
+        if response.status_code == 200:
+            print("Update flag found. Initiating git pull...")
+            
+            # The script is in the repo, so we can run git pull directly.
+            result = subprocess.run(
+                ["git", "pull"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            print("Git pull successful.")
+            print(f"Output:\n{result.stdout}")
+            return True
+        else:
+            print("No update flag found. No action needed.")
+            return False
+            
+    except subprocess.CalledProcessError as e:
+        print(f"Error during git pull: {e}")
+        print(f"Error output:\n{e.stderr}")
+        return False
+    except requests.exceptions.RequestException as e:
+        print(f"Error checking for update flag: {e}")
+        return False
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
+        return False
 
 # utils
 def get_system_uptime():
