@@ -35,7 +35,7 @@ echo "Enabling SPI interface..."
 sudo raspi-config nonint do_spi 0
 
 # Create weather station directory
-INSTALL_DIR="/home/pi/weather_station"
+INSTALL_DIR="/home/pregan/weather_station"
 echo "Setting up installation directory: $INSTALL_DIR"
 
 if [ ! -d "$INSTALL_DIR" ]; then
@@ -65,7 +65,7 @@ else
 fi
 
 # Set up Witty Pi integration
-WITTY_DIR="/home/pi/wittypi"
+WITTY_DIR="/home/pregan/wittypi"
 echo "Setting up Witty Pi integration..."
 
 if [ -d "$WITTY_DIR" ]; then
@@ -75,7 +75,7 @@ if [ -d "$WITTY_DIR" ]; then
     cat > "$WITTY_DIR/afterStartup.sh" << 'EOF'
 #!/bin/bash
 # Weather Station startup script for Witty Pi
-cd /home/pi/weather_station
+cd /home/pregan/weather_station
 source venv/bin/activate
 python3 main.py
 EOF
@@ -91,8 +91,8 @@ else
     cat > "$INSTALL_DIR/afterStartup.sh" << 'EOF'
 #!/bin/bash
 # Weather Station startup script for Witty Pi
-# Copy this file to /home/pi/wittypi/afterStartup.sh after installing Witty Pi software
-cd /home/pi/weather_station
+# Copy this file to /home/pregan/wittypi/afterStartup.sh after installing Witty Pi software
+cd /home/pregan/weather_station
 source venv/bin/activate
 python3 main.py
 EOF
