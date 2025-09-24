@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/pi/weather_station
+cd /home/pregan/weather_station
 /usr/bin/python3 main.py
