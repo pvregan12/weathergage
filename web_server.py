@@ -9,7 +9,7 @@ from database import log_error, read_data_range, read_error_logs
 
 # upload config
 COPYPARTY_SERVER = "192.168.1.100" # replace with copyparty ip
-COPYPARTY_PORT = 8000 # replace with copyparty port
+COPYPARTY_PORT = 3923 # replace with copyparty port
 UPLOAD_INTERVAL_HOURS = 24 # daily
 
 def get_last_upload_time():

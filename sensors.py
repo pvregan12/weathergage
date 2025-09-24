@@ -37,6 +37,10 @@ class MockSensor:
         import random
         return self.base_pressure + random.uniform(-10, 10)
 
+def safe_average(values):
+    """Calculate average excluding -9999 values, return -9999 if no valid data"""
+    valid_values = [val for val in values if val != -9999]
+    return sum(valid_values) / len(valid_values) if valid_values else -9999
 
 def initialize_sensors():
     """Initialize SHT30 and BMP388 sensors"""
@@ -50,7 +54,7 @@ def initialize_sensors():
             sensors['sht30'] = sht31d.SHT31D(i2c)
             print("SHT30 sensor initialized")
 
-            # initialize SHT30 (interior temp, pressure)
+            # initialize SHT30 (enclosure temp, pressure)
             sensors['bmp388'] = bmp3xx.BMP3XX_I2C(i2c)
             print("bmp388 sensor initialized")
 
@@ -80,8 +84,8 @@ def read_all_sensors(sensors):
 
         # read SHT30
         try:
-            exterior_temp = round(sensors['sht30'].temperature, 3)
-            humidity = round(sensors['sht30'].relative_humidity, 1)
+            exterior_temp = sensors['sht30'].temperature
+            humidity = sensors['sht30'].relative_humidity
         except Exception as e:
             print(f"SHT30 read error: {e}")
             exterior_temp = None
@@ -89,18 +93,18 @@ def read_all_sensors(sensors):
         
         # read bmp388
         try:
-            interior_temp = round(sensors['bmp388'].temperature, 3)
-            pressure = round(sensors['bmp388'].pressure, 3)
+            enclosure_temp = sensors['bmp388'].temperature
+            pressure = sensors['bmp388'].pressure
         except Exception as e:
             print(f"BMP388 read error: {e}")
-            interior_temp = None
+            enclosure_temp = None
             pressure = None
         
         # Replace None values with -9999
         if exterior_temp is None:
             exterior_temp = -9999.0
-        if interior_temp is None:
-            interior_temp = -9999.0
+        if enclosure_temp is None:
+            enclosure_temp = -9999.0
         if humidity is None:
             humidity = -9999.0
         if pressure is None:
@@ -109,7 +113,7 @@ def read_all_sensors(sensors):
         sensor_data = {
             'timestamp': timestamp,
             'exterior_temp': exterior_temp,
-            'interior_temp': interior_temp,
+            'enclosure_temp': enclosure_temp,
             'humidity': humidity,
             'pressure': pressure
         }
@@ -118,6 +122,47 @@ def read_all_sensors(sensors):
         print(f"Sensor reading failed: {e}")
         return None
     
+def read_sensors_over_interval(sensors, period=30, interval=1):
+    """
+    Reads all sensors in sensors for `period` seconds, taking readings a `interval` second intervals
+    """
+    n_readings = period // interval
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    ext_temps = []
+    encl_temps = []
+    hums = []
+    presses = []
+    for i in range(n_readings):
+
+        # take reading
+        readings = read_all_sensors(sensors)
+        
+        if readings is None:
+            time.sleep(interval)
+            continue
+
+        ext_temps.append(readings['exterior_temp'])
+        encl_temps.append(readings['enclosure_temp'])
+        hums.append(readings['humidity'])
+        presses.append(readings['pressure'])
+        
+        time.sleep(interval)
+    
+    ext_temps = [val for val in ext_temps if val != -9999]
+    encl_temps = [val for val in encl_temps if val != -9999]
+    hums = [val for val in hums if val != -9999]
+    presses = [val for val in presses if val != -9999]
+    
+    avg_data = {
+    'timestamp': timestamp,
+    'exterior_temp': safe_average(ext_temps),
+    'enclosure_temp': safe_average(encl_temps),
+    'humidity': safe_average(hums),
+    'pressure': safe_average(presses)
+    }
+
+    return avg_data  
 
 def test_sensors():
     """Test function to verify sensor readings"""
