@@ -1,17 +1,22 @@
 # config.py - Weather Station Configuration
 
+# Dev Mode
+DEVELOPMENT_MODE = True
+
 # Sensor Reading Settings
 AVERAGING_PERIOD = 30        # seconds to average readings over X
 READING_INTERVAL = 1         # seconds between individual readings X
 MAIN_LOOP_INTERVAL = 15*60     # 15 minutes between sensor cycles (15 * 60) = 900 s
 
 # GPIO Pin Assignments  
-BUTTON_PIN = 18              # Waterproof button GPIO pin
+SHUTDOWN_SIGNAL_PIN = 29              # 
+
+'''
 DISPLAY_CS_PIN = 8           # E-ink display chip select
 DISPLAY_DC_PIN = 22          # E-ink display data/command
 DISPLAY_RST_PIN = 27         # E-ink display reset
 DISPLAY_BUSY_PIN = 17        # E-ink display busy
-
+'''
 # File Paths
 WEATHER_DATA_FILE = "weather_data.csv"
 ERROR_LOG_FILE = "error_log.csv"

@@ -1,18 +1,19 @@
-Adafruit_Blinka
-adafruit-circuitpython-bmp3xx
-adafruit-circuitpython-sht31d
-adafruit-circuitpython-epd
-busio
-board
-datetime
-gpiozero
-json
-numpy
-os
-pandas
-Pillow
-requests
-signal
-subprocess
-sys
-time
+Adafruit_Blinka # yep
+adafruit-circuitpython-bmp3xx # yep
+adafruit-circuitpython-sht31d # yep
+adafruit-circuitpython-epd # yep
+busio # yep
+board # yep
+datetime # yep
+gpiozero # yep
+json # yep
+numpy # yep
+os # yep
+pandas # yep
+Pillow # yep
+requests # yep
+RPi.GPIO # yep
+signal # yep
+subprocess # yep
+sys# yep
+time # yep
