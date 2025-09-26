@@ -93,9 +93,11 @@ def take_readings():
                 print("Upload needed - connecting to network...")
                 upload_result = upload_to_server()
                 print(f"Upload result: {upload_result}")
+
                 # see if update needed
                 print("Checking for update flag")
                 update_result = should_update()
+                print(f"Software update result: {update_result}")
             else:
                 print("No upload needed")
                 
