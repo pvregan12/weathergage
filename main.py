@@ -94,7 +94,7 @@ def take_readings():
                 upload_result = upload_to_server()
                 print(f"Upload result: {upload_result}")
 
-                # see if update needed
+                # see if update needed only when upload happens
                 print("Checking for update flag")
                 update_result = should_update()
                 print(f"Software update result: {update_result}")
