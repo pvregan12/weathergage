@@ -17,24 +17,93 @@ if ! grep -q "Raspberry Pi" /proc/cpuinfo 2>/dev/null; then
     fi
 fi
 
-# Update system packages
+#### Update system packages
 echo "Updating system packages..."
 sudo apt update
 sudo apt upgrade -y
 
-# Install system dependencies
+#-------------- Install system dependencies
 echo "Installing system dependencies..."
 sudo apt install -y python3-pip python3-dev python3-venv git i2c-tools build-essential
 
-# Enable I2C for sensors
+#-------------- Enable I2C for sensors
 echo "Enabling I2C interface..."
 sudo raspi-config nonint do_i2c 0
 
-# Enable SPI (in case needed for future displays)
+#-------------- Enable SPI (in case needed for future displays)
 echo "Enabling SPI interface..."
 sudo raspi-config nonint do_spi 0
 
-# Create weather station directory
+#-------------- Setting up power management
+echo "Configuring aggressive power management..."
+
+# Disable Bluetooth permanently
+echo "Disabling Bluetooth..."
+sudo systemctl disable bluetooth
+sudo systemctl disable hciuart
+
+# Configure boot config for power savings
+echo "Updating /boot/config.txt for power optimization..."
+
+# Backup original config
+sudo cp /boot/config.txt /boot/config.txt.backup
+
+# Add power management settings to config.txt
+cat << 'EOF' | sudo tee -a /boot/config.txt
+
+# Weather Station Power Optimizations
+# Disable audio (saves ~3mA)
+dtparam=audio=off
+
+# Disable Bluetooth hardware
+dtoverlay=disable-bt
+
+# Disable camera and display auto-detect (saves ~6mA)
+camera_auto_detect=0
+display_auto_detect=0
+
+# Use legacy GL driver for HDMI disable capability
+# Comment out the modern KMS driver
+#dtoverlay=vc4-kms-v3d
+max_framebuffers=2
+EOF
+
+# Add HDMI disable to rc.local for automatic power-off at boot
+echo "Configuring automatic HDMI disable..."
+sudo sed -i '/^exit 0/i # Disable HDMI for power savings\n/usr/bin/tvservice -o' /etc/rc.local
+
+# Create deployment script for WiFi disable (don't run automatically)
+cat > "$INSTALL_DIR/enable_deployment_mode.sh" << 'EOF'
+#!/bin/bash
+# Run this script when ready for final deployment
+echo "Enabling deployment mode (disables WiFi on boot)..."
+
+# Add WiFi disable to config.txt
+if ! grep -q "dtoverlay=disable-wifi" /boot/config.txt; then
+    echo "dtoverlay=disable-wifi" | sudo tee -a /boot/config.txt
+fi
+
+# Disable WiFi service
+sudo systemctl disable wpa_supplicant
+
+echo "Deployment mode enabled. WiFi will be disabled on next reboot."
+echo "Weather station will use Python code to control WiFi for uploads only."
+echo "Reboot to activate all power savings."
+EOF
+
+chmod +x "$INSTALL_DIR/enable_deployment_mode.sh"
+
+echo "Power optimizations configured:"
+echo "  - Bluetooth disabled (saves ~10-20mA)"
+echo "  - Audio disabled (saves ~3mA)" 
+echo "  - Camera/display auto-detect disabled (saves ~6mA)"
+echo "  - Legacy GL driver enabled for HDMI control"
+echo "  - HDMI will be disabled at boot (saves ~17mA)"
+echo ""
+echo "Total estimated power savings: ~36-46mA"
+echo "Run enable_deployment_mode.sh when ready to disable WiFi for deployment"
+
+#-------------- Create weather station directory
 INSTALL_DIR="/home/pregan/weather_station"
 echo "Setting up installation directory: $INSTALL_DIR"
 
@@ -42,18 +111,18 @@ if [ ! -d "$INSTALL_DIR" ]; then
     mkdir -p "$INSTALL_DIR"
 fi
 
-# Copy weather station files to installation directory
+#-------------- Copy weather station files to installation directory
 echo "Copying weather station files..."
 cp *.py "$INSTALL_DIR/" 2>/dev/null || echo "No Python files found in current directory"
 cp requirements.txt "$INSTALL_DIR/" 2>/dev/null || echo "requirements.txt not found"
 
-# Create virtual environment
+#-------------- Create virtual environment
 echo "Creating Python virtual environment..."
 cd "$INSTALL_DIR"
 python3 -m venv venv
 source venv/bin/activate
 
-# Install Python packages
+#-------------- Install Python packages
 if [ -f "requirements.txt" ]; then
     echo "Installing Python packages from requirements.txt..."
     pip install --upgrade pip
@@ -64,7 +133,7 @@ else
     pip install requests adafruit-circuitpython-sht31d adafruit-circuitpython-bmp3xx
 fi
 
-# Set up Witty Pi integration
+#-------------- Set up Witty Pi integration
 WITTY_DIR="/home/pregan/wittypi"
 echo "Setting up Witty Pi integration..."
 
@@ -86,33 +155,21 @@ EOF
 else
     echo "Warning: Witty Pi directory not found at $WITTY_DIR"
     echo "Please install Witty Pi software first, then manually copy afterStartup.sh"
-    
-    # Create afterStartup.sh in weather station directory for manual copying
-    cat > "$INSTALL_DIR/afterStartup.sh" << 'EOF'
-#!/bin/bash
-# Weather Station startup script for Witty Pi
-# Copy this file to /home/pregan/wittypi/afterStartup.sh after installing Witty Pi software
-cd /home/pregan/weather_station
-source venv/bin/activate
-python3 main.py
-EOF
-    
-    chmod +x "$INSTALL_DIR/afterStartup.sh"
-    echo "afterStartup.sh created in $INSTALL_DIR for manual installation"
 fi
 
-# Create data files
-echo "Setting up data files..."
-touch weather_data.csv
-touch error_log.csv
-touch last_upload.txt
+#-------------- Create data files
+# skipping because database.py creates these with correct headers
+#echo "Setting up data files..."
+#touch weather_data.csv
+#touch error_log.csv
+#touch last_upload.txt
 
-# Set proper permissions
+#-------------- Set proper permissions
 echo "Setting file permissions..."
 chown -R pi:pi "$INSTALL_DIR"
 chmod +x main.py
 
-# Create config file if it doesn't exist
+#-------------- Create config file if it doesn't exist
 if [ ! -f "config.py" ]; then
     echo "Creating default config.py..."
     cat > config.py << 'EOF'
@@ -146,14 +203,14 @@ INVALID_READING = -9999                # Sentinel value for bad readings
 EOF
 fi
 
-# Test I2C bus
+#-------------- Test I2C bus
 echo "Testing I2C bus..."
 if command -v i2cdetect &> /dev/null; then
     echo "I2C devices detected:"
     i2cdetect -y 1 2>/dev/null || echo "No I2C devices found (this is normal if sensors aren't connected yet)"
 fi
 
-# Deactivate virtual environment
+#-------------- Deactivate virtual environment
 deactivate 2>/dev/null || true
 
 echo ""
