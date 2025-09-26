@@ -4,8 +4,8 @@
 DEVELOPMENT_MODE = True
 
 # Sensor Reading Settings
-AVERAGING_PERIOD = 30        # seconds to average readings over X
-READING_INTERVAL = 1         # seconds between individual readings X
+AVERAGING_PERIOD = 15  #30      # seconds to average readings over X
+READING_INTERVAL = 0.5         # seconds between individual readings X
 MAIN_LOOP_INTERVAL = 15*60     # 15 minutes between sensor cycles (15 * 60) = 900 s
 
 # GPIO Pin Assignments  
@@ -29,7 +29,7 @@ COPYPARTY_PORT = 3923
 COPYPARTY_USERNAME = "weathergage"
 COPYPARTY_PASSWORD = "climate_change"   # You'll set this
 UPDATE_FLAG = "weather//update_flag.txt"
-UPLOAD_INTERVAL_HOURS = 24
+UPLOAD_INTERVAL_HOURS = 1 # 24
 
 # WiFi Hotspot Settings (if you implement it later)
 HOTSPOT_SSID = "WeatherStation_001"

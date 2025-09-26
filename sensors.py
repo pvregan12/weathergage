@@ -127,7 +127,7 @@ def read_sensors_over_interval(sensors, period=AVERAGING_PERIOD, interval=READIN
     """
     Reads all sensors in sensors for `period` seconds, taking readings a `interval` second intervals
     """
-    n_readings = period // interval
+    n_readings = int(period // interval)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     ext_temps = []
