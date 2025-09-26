@@ -28,6 +28,27 @@ def save_last_upload_time(timestamp):
     with open(LAST_UPLOAD_FILE, 'w') as f:
         f.write(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
 
+def get_last_upload_attempt_time():
+    """Get timestamp of last upload attempt (successful or failed)"""
+    try:
+        with open('last_upload_attempt.txt', 'r') as f:
+            timestamp_str = f.read().strip()
+            return datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+    except (FileNotFoundError, ValueError):
+        return datetime.now() - timedelta(days=2)  # Force attempt on first run
+
+def save_upload_attempt_time(timestamp):
+    """Save timestamp of upload attempt"""
+    with open('last_upload_attempt.txt', 'w') as f:
+        f.write(timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+
+def get_next_scheduled_upload():
+    """Get the next scheduled upload time (fixed daily schedule)"""
+    now = datetime.now()
+    # Set to today at midnight, then add config hours to get next upload time
+    next_upload = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(hours=UPLOAD_INTERVAL_HOURS)
+    return next_upload
+
 def prepare_upload_data():
     """Gather all data since last upload"""
     last_upload = get_last_upload_time()
@@ -57,6 +78,7 @@ def upload_to_server():
     try:
         upload_data = prepare_upload_data()  # Use your existing function
         current_time = datetime.now()
+        save_upload_attempt_time(current_time)
         
         filename = f"weather_bundle_{current_time.strftime('%Y%m%d_%H%M%S')}.json"
         url = f"http://{COPYPARTY_SERVER}:{COPYPARTY_PORT}/weather//{filename}"
@@ -80,10 +102,24 @@ def upload_to_server():
         return error_msg
 
 def should_upload():
-    """Check if it's time for next upload"""
-    last_upload = get_last_upload_time()
-    time_since_upload = datetime.now() - last_upload
-    return time_since_upload.total_seconds() >= (UPLOAD_INTERVAL_HOURS * 3600)
+    """Check if it's time for scheduled upload or retry window"""
+    now = datetime.now()
+    last_success = get_last_upload_time()
+    last_attempt = get_last_upload_attempt_time()
+    
+    # If we successfully uploaded in the last 24 hours, don't upload
+    if (now - last_success).total_seconds() < (24 * 3600):
+        return False
+    
+    # Check if we're in the daily upload window (e.g., between 00:00-01:00)
+    if now.hour == 0:  # Primary upload window
+        return True
+    
+    # If primary window failed, allow hourly retries until success
+    if (now - last_attempt).total_seconds() >= (1 * 3600):
+        return True
+    
+    return False
 
 def should_update():
     """Check if a flag file exists on copyparty, and if so, git pull."""
