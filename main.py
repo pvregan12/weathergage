@@ -1,22 +1,21 @@
 import time
 import signal
 import sys
-#import RPi.GPIO as GPIO
 import gpiozero
 from datetime import datetime, timedelta
-
+#from display import initialize_display, update_display
 from sensors import *
 from database import *
-#from display import initialize_display, update_display
 from web_server import *
-
 from config import *
+
+if not DEVELOPMENT_MODE:
+    import RPi.GPIO as GPIO
 
 def signal_early_shutdown():
     """Signal Witty Pi for early shutdown (production only)"""
     if not DEVELOPMENT_MODE:
         try:
-            import RPi.GPIO as GPIO
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(SHUTDOWN_SIGNAL_PIN, GPIO.OUT)
             GPIO.output(SHUTDOWN_SIGNAL_PIN, GPIO.HIGH)  # Start high
