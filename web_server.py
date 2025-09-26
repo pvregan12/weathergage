@@ -107,8 +107,8 @@ def should_upload():
     last_success = get_last_upload_time()
     last_attempt = get_last_upload_attempt_time()
     
-    # If we successfully uploaded in the last 24 hours, don't upload
-    if (now - last_success).total_seconds() < (24 * 3600):
+    # If we successfully uploaded in the last config hours, don't upload
+    if (now - last_success).total_seconds() < (UPLOAD_INTERVAL_HOURS * 3600):
         return False
     
     # Check if we're in the daily upload window (e.g., between 00:00-01:00)
@@ -116,7 +116,7 @@ def should_upload():
         return True
     
     # If primary window failed, allow hourly retries until success
-    if (now - last_attempt).total_seconds() >= (1 * 3600):
+    if (now - last_attempt).total_seconds() >= (UPLOAD_RETRY_INTERVAL_HOURS * 3600):
         return True
     
     return False

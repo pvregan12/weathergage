@@ -29,7 +29,8 @@ COPYPARTY_PORT = 3923
 COPYPARTY_USERNAME = "weathergage"
 COPYPARTY_PASSWORD = "climate_change"   # You'll set this
 UPDATE_FLAG = "weather//update_flag.txt"
-UPLOAD_INTERVAL_HOURS = 1 # 24
+UPLOAD_INTERVAL_HOURS = 24
+UPLOAD_RETRY_INTERVAL_HOURS = 1
 
 # WiFi Hotspot Settings (if you implement it later)
 HOTSPOT_SSID = "WeatherStation_001"
