@@ -107,14 +107,43 @@ echo "Run enable_deployment_mode.sh when ready to disable WiFi for deployment"
 INSTALL_DIR="/home/pregan/weather_station"
 echo "Setting up installation directory: $INSTALL_DIR"
 
+#### Git repository setup
+echo "Setting up weather station code repository..."
+
+# Remove existing directory if it exists
+if [ -d "$INSTALL_DIR" ]; then
+    echo "Removing existing weather station directory..."
+    rm -rf "$INSTALL_DIR"
+fi
+
+# Clone the repository
+echo "Cloning weather station repository..."
+git clone https://github.com/pvregan12/weathergage "$INSTALL_DIR"
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to clone repository"
+    echo "Please check the repository URL and your internet connection"
+    exit 1
+fi
+
+# Change to the repository directory
+cd "$INSTALL_DIR"
+
+# Configure git for the pi user
+echo "Configuring git..."
+git config user.name "Weather Station Pi"
+git config user.email "weather@pi.local"
+
+echo "Repository cloned successfully to $INSTALL_DIR"
+
 if [ ! -d "$INSTALL_DIR" ]; then
     mkdir -p "$INSTALL_DIR"
 fi
 
 #-------------- Copy weather station files to installation directory
-echo "Copying weather station files..."
-cp *.py "$INSTALL_DIR/" 2>/dev/null || echo "No Python files found in current directory"
-cp requirements.txt "$INSTALL_DIR/" 2>/dev/null || echo "requirements.txt not found"
+#echo "Copying weather station files..."
+#cp *.py "$INSTALL_DIR/" 2>/dev/null || echo "No Python files found in current directory"
+#cp requirements.txt "$INSTALL_DIR/" 2>/dev/null || echo "requirements.txt not found"
 
 #-------------- Create virtual environment
 echo "Creating Python virtual environment..."
