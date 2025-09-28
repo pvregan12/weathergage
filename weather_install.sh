@@ -111,34 +111,34 @@ echo "Setting up installation directory: $INSTALL_DIR"
 echo "Setting up weather station code repository..."
 
 # Remove existing directory if it exists
-if [ -d "$INSTALL_DIR" ]; then
-    echo "Removing existing weather station directory..."
-    rm -rf "$INSTALL_DIR"
-fi
+#if [ -d "$INSTALL_DIR" ]; then
+#    echo "Removing existing weather station directory..."
+#    rm -rf "$INSTALL_DIR"
+#fi
 
 # Clone the repository
-echo "Cloning weather station repository..."
-git clone https://github.com/pvregan12/weathergage "$INSTALL_DIR"
+#echo "Cloning weather station repository..."
+#git clone https://github.com/pvregan12/weathergage "$INSTALL_DIR"
 
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to clone repository"
-    echo "Please check the repository URL and your internet connection"
-    exit 1
-fi
+#if [ $? -ne 0 ]; then
+#    echo "Error: Failed to clone repository"
+#    echo "Please check the repository URL and your internet connection"
+#    exit 1
+#fi
 
 # Change to the repository directory
-cd "$INSTALL_DIR"
+#cd "$INSTALL_DIR"
 
 # Configure git for the pi user
-echo "Configuring git..."
-git config user.name "Weather Station Pi"
-git config user.email "weather@pi.local"
+#echo "Configuring git..."
+#git config user.name "Weather Station Pi"
+#git config user.email "weather@pi.local"
 
-echo "Repository cloned successfully to $INSTALL_DIR"
+#echo "Repository cloned successfully to $INSTALL_DIR"
 
-if [ ! -d "$INSTALL_DIR" ]; then
-    mkdir -p "$INSTALL_DIR"
-fi
+#if [ ! -d "$INSTALL_DIR" ]; then
+#    mkdir -p "$INSTALL_DIR"
+#fi
 
 #-------------- Copy weather station files to installation directory
 #echo "Copying weather station files..."
@@ -176,6 +176,11 @@ if [ -d "$WITTY_DIR" ]; then
 cd /home/pregan/weather_station
 source venv/bin/activate
 python3 main.py
+
+# Weather station work complete - shutdown system
+echo "Weather station work completed at $(date)"
+echo "Initiating safe system shutdown..."
+sudo shutdown -h now
 EOF
     
     chmod +x "$WITTY_DIR/afterStartup.sh"
