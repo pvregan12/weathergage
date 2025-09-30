@@ -1,7 +1,8 @@
 # config.py - Weather Station Configuration
 
 # Dev Mode
-DEVELOPMENT_MODE = True
+DEVELOPMENT_MODE = True # signals whether to try and import hardware modules
+WITTY_PI_SLEEP = False # signals whether to use python time.sleep (False) or rely on witty pi (True)
 
 # Sensor Reading Settings
 AVERAGING_PERIOD = 15  #30      # seconds to average readings over X

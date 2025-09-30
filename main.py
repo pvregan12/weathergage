@@ -276,7 +276,7 @@ def signal_handler(sig, frame):
 
 if __name__ == "__main__":
     try:
-        if DEVELOPMENT_MODE:
+        if not WITTY_PI_SLEEP:
             main_loop()
         else:
             main()
