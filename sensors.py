@@ -172,7 +172,7 @@ def test_sensors():
     
     print("\nTaking test readings...")
     for i in range(3):
-        data = read_all_sensors(sensors)
+        data = read_sensors_over_interval(sensors)
         if data:
             print(f"Reading {i+1}: {data}")
         else:
