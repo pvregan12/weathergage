@@ -49,7 +49,7 @@ def initialize_sensors():
     if HARDWARE_AVAILABLE:
         try:
             # initialize i2c bus
-            i2c = busio.I2C(board.GP3, board.GP2)
+            i2c = busio.I2C(board.GPIO3, board.GPIO2)
             # initialize SHT30 (exterior temp, humidity)
             sensors['sht30'] = sht31d.SHT31D(i2c)
             print("SHT30 sensor initialized")
