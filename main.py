@@ -143,6 +143,31 @@ def main():
         log_error(error_msg)
         signal_early_shutdown()  # Try to shutdown even on error
 
+
+def main_bashloop():
+    """one-off reading, looping done in regular_loop.sh"""
+    print("=" * 50)
+    print("Weather Station - Single Read Mode")
+    print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("Press Ctrl+C to stop")
+    print("=" * 50)  
+
+    try:            
+        # Take readings
+        sensor_data = take_readings()
+        
+        if sensor_data:
+            print(f"Reading completed successfully")
+        else:
+            print(f"Reading completed with errors")
+            
+    except Exception as e:
+        error_msg = f"Error during reading: {str(e)}"
+        print(error_msg)
+        log_error(error_msg)
+        print("Waiting 60 seconds before retry...")
+        time.sleep(60)
+
 def main_loop():
     """Continuous loop for development testing"""
     print("=" * 50)
@@ -277,7 +302,7 @@ def signal_handler(sig, frame):
 if __name__ == "__main__":
     try:
         if not WITTY_PI_SLEEP:
-            main_loop()
+            main_bashloop()
         else:
             main()
     finally:
