@@ -1,4 +1,8 @@
+#!/bin/bash
+cd /home/pregan/weather_station
+/usr/bin/python3 main.py
 
+: '
 INTERVAL=900
 cd /home/pregan/weather_station
 while true; do
@@ -24,3 +28,4 @@ while true; do
     echo "Script took longer than 15 minutes. Starting next loop immediately."
   fi
 done
+: '

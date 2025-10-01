@@ -180,6 +180,8 @@ def main_loop():
     cycle_count = 0
     
     while True:
+        start_time = datetime.now()
+        next_start_time = datetime.now() + timedelta(seconds=MAIN_LOOP_INTERVAL)
         try:
             cycle_count += 1
             print(f"\n--- Cycle {cycle_count} at {datetime.now().strftime('%H:%M:%S')} ---")
@@ -193,8 +195,9 @@ def main_loop():
                 print(f"Cycle {cycle_count} completed with errors")
             
             # Sleep until next reading
-            print(f"Sleeping for {MAIN_LOOP_INTERVAL/60} minutes...")
-            time.sleep(MAIN_LOOP_INTERVAL)
+            time_to_sleep = (next_start_time - datetime.now()).total_seconds()
+            print(f"Sleeping for {time_to_sleep/60} minutes...")
+            time.sleep(time_to_sleep)
             
         except KeyboardInterrupt:
             print("\nShutdown requested by user")
@@ -302,7 +305,7 @@ def signal_handler(sig, frame):
 if __name__ == "__main__":
     try:
         if not WITTY_PI_SLEEP:
-            main_bashloop()
+            main_loop()
         else:
             main()
     finally:
